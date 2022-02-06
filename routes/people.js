@@ -122,8 +122,6 @@ router.post('/', async (req, res) => {
       json: () => res.sendStatus(500)
     })
   }
-
-
 })
 
 /* DELETE uma pessoa */
@@ -133,6 +131,40 @@ router.post('/', async (req, res) => {
 //   2. Redirecionar para a rota de listagem de pessoas
 //      - Em caso de sucesso do INSERT, colocar uma mensagem feliz
 //      - Em caso de erro do INSERT, colocar mensagem vermelhinha
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
 
+  if (!id) {
+    res.format({
+      html: () => {
+        req.flash('error', 'Nenhum usuário foi passado!');
+        res.redirect('/people')
+      },
+      json: () => res.sendStatus(400)
+    });
+    return;
+  }
+
+  try {
+    await db.execute('DELETE FROM `zombies`.`person` WHERE id=?', [id]);
+    
+    res.format({
+      html: () => {
+        req.flash('peopleCountChange', '-1')
+        req.flash('success', `Uma pessoa foi removida do jardim`);
+        res.redirect('/people')
+      },
+      json: () => res.sendStatus(204)
+    });
+  } catch (error) {
+    res.format({
+      html: () => {
+        req.flash('error', 'Houve um erro inesperado na deleção!');
+        res.redirect('/people')
+      },
+      json: () => res.sendStatus(500)
+    })
+  }
+})
 
 export default router
