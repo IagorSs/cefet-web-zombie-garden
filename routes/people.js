@@ -88,7 +88,43 @@ router.get('/new/', (req, res) => {
 //   2. Redirecionar para a rota de listagem de pessoas
 //      - Em caso de sucesso do INSERT, colocar uma mensagem feliz
 //      - Em caso de erro do INSERT, colocar mensagem vermelhinha
+router.post('/', async (req, res) => {
+  const { name } = req.body;
 
+  if (!name) {
+    res.format({
+      html: () => {
+        req.flash('error', 'Nenhum nome foi passado!');
+        res.redirect('./new')
+      },
+      json: () => res.sendStatus(400)
+    });
+    return;
+  }
+
+  try {
+    await db.execute('INSERT INTO `zombies`.`person` (`name`, `alive`, `eatenBy`) VALUES (?, 1, NULL)', [name]);
+    
+    res.format({
+      html: () => {
+        req.flash('peopleCountChange', '+1')
+        req.flash('success', `Uma nova pessoa se mudou para o jardim: ${name}`);
+        res.redirect('/people')
+      },
+      json: () => res.sendStatus(201)
+    });
+  } catch (error) {
+    res.format({
+      html: () => {
+        req.flash('error', 'Houve um erro inesperado na criação!');
+        res.redirect('./new')
+      },
+      json: () => res.sendStatus(500)
+    })
+  }
+
+
+})
 
 /* DELETE uma pessoa */
 // Exercício 2: IMPLEMENTAR AQUI
